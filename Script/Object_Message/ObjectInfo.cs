@@ -13,4 +13,7 @@ public class ObjectInfo : MonoBehaviour
 
     [HideInInspector]
     public PointType pointType;
+
+    [HideInInspector]
+    public int pointIndex; // нове поле: індекс у списку _latLongs
 }

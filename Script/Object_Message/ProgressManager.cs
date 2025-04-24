@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using TMPro;
 
 public class ProgressManager : MonoBehaviour
@@ -12,11 +13,21 @@ public class ProgressManager : MonoBehaviour
 
     void Start()
     {
-        foreach (var tuple in preplacer.PlacedObjects)
-        {
-            if (tuple.coord.pointType == PointType.Primary) totalPrimary++;
-            else totalSecondary++;
-        }
+        // 1) Рахуємо загальні за списком LatLong
+        var allCoords = preplacer.GetLatLongs();
+        totalPrimary = allCoords.Count(c => c.pointType == PointType.Primary);
+        totalSecondary = allCoords.Count(c => c.pointType == PointType.Secondary);
+
+        // 2) Підвантажуємо кількість вже знайдених
+        var savedP = PlayerPrefs.GetString("found_primary", "");
+        if (!string.IsNullOrEmpty(savedP))
+            foundPrimary = savedP.Split(',').Length;
+
+        var savedS = PlayerPrefs.GetString("found_secondary", "");
+        if (!string.IsNullOrEmpty(savedS))
+            foundSecondary = savedS.Split(',').Length;
+
+        // 3) Оновлюємо UI
         UpdateUI();
     }
 
@@ -24,8 +35,6 @@ public class ProgressManager : MonoBehaviour
     {
         if (type == PointType.Primary) foundPrimary++;
         else foundSecondary++;
-
-        Debug.Log($"[Progress] Знайдено {foundPrimary}/{totalPrimary} основних; {foundSecondary}/{totalSecondary} другорядних.");
         UpdateUI();
     }
 
