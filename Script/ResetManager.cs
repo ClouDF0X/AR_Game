@@ -8,6 +8,7 @@ public class ResetManager : MonoBehaviour
         Debug.Log("ResetAllProgress invoked");
         PlayerPrefs.DeleteKey("found_primary");
         PlayerPrefs.DeleteKey("found_secondary");
+        PlayerPrefs.DeleteKey("summary_text");
         PlayerPrefs.Save();
         SceneManager.LoadScene(
             SceneManager.GetActiveScene().buildIndex

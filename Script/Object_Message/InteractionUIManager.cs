@@ -1,4 +1,4 @@
-using System.Linq;                                // <-- потрібен для First()
+п»їusing System.Linq;                                
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -7,13 +7,14 @@ using Niantic.Experimental.Lightship.AR.WorldPositioning;
 public class InteractionUIManager : MonoBehaviour
 {
     [SerializeField] private PreplaceWorldObjects _preplacer;
-    [SerializeField] private ARWorldPositioningObjectHelper _objectHelper;  // <-- нове поле
+    [SerializeField] private ARWorldPositioningObjectHelper _objectHelper;  
     [SerializeField] private ARWorldPositioningManager _positioningManager;
     [SerializeField] private Button _interactButton;
     [SerializeField] private RectTransform _infoPanel;
     [SerializeField] private TextMeshProUGUI _infoText;
     [SerializeField] private Button _closeInfoButton;
     [SerializeField] private ProgressManager _progressManager;
+    [SerializeField] private SummaryUIManager _summaryUI;
     [SerializeField] private float _showDistance = 5f;
 
     private Camera _mainCam;
@@ -75,12 +76,11 @@ public class InteractionUIManager : MonoBehaviour
         var info = _currentTarget.GetComponent<ObjectInfo>();
         if (info == null || info.isReplaced) return;
 
-        // 1) Знайти точку в списку, щоб дістати координати
-        var tuple = _preplacer.PlacedObjects
-                      .First(t => t.go == _currentTarget);
-        var latLong = tuple.coord;
+        // 1) Р—РЅР°С…РѕРґРёРјРѕ GPS-РєРѕРѕСЂРґРёРЅР°С‚Рё РїРѕС‚РѕС‡РЅРѕС— С‚РѕС‡РєРё
+        var entry = _preplacer.PlacedObjects.First(e => e.go == _currentTarget);
+        var latLong = entry.coord;
 
-        // 2) Спавнимо замінник через ваш ObjectHelper, щоб він з’явився за GPS
+        // 2) РЎРїР°РІРЅРёРјРѕ Р·Р°РјС–РЅРЅРёРє С‡РµСЂРµР· ObjectHelper, С‰РѕР± РІС–РЅ Р·вЂ™СЏРІРёРІСЃСЏ Р·Р° GPS
         GameObject repl = Instantiate(info.replacementPrefab);
         _objectHelper.AddOrUpdateObject(
             repl,
@@ -90,17 +90,31 @@ public class InteractionUIManager : MonoBehaviour
             Quaternion.identity
         );
 
-        // 3) Ховаємо оригінал
+        // 3) РҐРѕРІР°С”РјРѕ РѕСЂРёРіС–РЅР°Р»
         foreach (var r in _currentTarget.GetComponentsInChildren<Renderer>()) r.enabled = false;
         foreach (var c in _currentTarget.GetComponentsInChildren<Collider>()) c.enabled = false;
         info.isReplaced = true;
 
-        // 4) Оновлюємо прогрес та зберігаємо
+        // 4) РћРЅРѕРІР»СЋС”РјРѕ РїСЂРѕРіСЂРµСЃ С‚Р° Р·Р±РµСЂС–РіР°С”РјРѕ Р·РЅР°Р№РґРµРЅРёР№ С–РЅРґРµРєСЃ
         _progressManager.MarkFound(info.pointType);
         SaveFoundPoint(info.pointType, info.pointIndex);
 
+        // 5) Р”РѕРґР°С”РјРѕ description Сѓ С”РґРёРЅРёР№ РєР»СЋС‡ summary_text
+        const string summaryKey = "summary_text";
+        string prev = PlayerPrefs.GetString(summaryKey, "");
+        string updated = string.IsNullOrEmpty(prev)
+            ? info.description
+            : prev + "\n\n" + info.description;
+        PlayerPrefs.SetString(summaryKey, updated);
+        PlayerPrefs.Save();
+
+        // 6) РџРѕРІС–РґРѕРјР»СЏС”РјРѕ SummaryUIManager, С‰РѕР± РІС–РЅ Р·СЂРѕР±РёРІ РєРЅРѕРїРєСѓ РІРёРґРёРјРѕСЋ
+        _summaryUI.NotifySummaryAvailable();
+
+        // 7) Р—Р°РєСЂРёРІР°С”РјРѕ РїР°РЅРµР»СЊ Info
         _infoPanel.gameObject.SetActive(false);
     }
+
 
     private void SaveFoundPoint(PointType type, int index)
     {
@@ -114,6 +128,9 @@ public class InteractionUIManager : MonoBehaviour
             list.Add(index.ToString());
             PlayerPrefs.SetString(key, string.Join(",", list));
             PlayerPrefs.Save();
+
         }
     }
+
+    
 }
