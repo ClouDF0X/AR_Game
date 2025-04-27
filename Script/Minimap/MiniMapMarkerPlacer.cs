@@ -56,7 +56,7 @@ public class MiniMapMarkerPlacer : MonoBehaviour
             RectTransform markerRect = marker.GetComponent<RectTransform>();
             markerRect.anchoredPosition = new Vector2(markerPosX, markerPosY);
 
-            Debug.Log($"?? Маркер #{i + 1}: GPS=({pos.latitude}, {pos.longitude}) ? tile=({oTileX:F2}, {oTileY:F2}), offset=({offsetX:F1}, {offsetY:F1}), позиція=({markerPosX:F1}, {markerPosY:F1})");
+            // Debug.Log($"?? Маркер #{i + 1}: GPS=({pos.latitude}, {pos.longitude}) ? tile=({oTileX:F2}, {oTileY:F2}), offset=({offsetX:F1}, {offsetY:F1}), позиція=({markerPosX:F1}, {markerPosY:F1})");
 
             i++;
         }

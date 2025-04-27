@@ -30,13 +30,13 @@ public class PreplaceWorldObjects : MonoBehaviour
     {
         // 1) Прочитати, що вже знайдено
         var foundPrimary = new HashSet<int>(
-            PlayerPrefs.GetString("found_primary","")
-            .Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries)
+            PlayerPrefs.GetString("found_primary", "")
+            .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
             .Select(int.Parse)
         );
         var foundSecondary = new HashSet<int>(
-            PlayerPrefs.GetString("found_secondary","")
-            .Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries)
+            PlayerPrefs.GetString("found_secondary", "")
+            .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
             .Select(int.Parse)
         );
 
@@ -88,7 +88,7 @@ public class PreplaceWorldObjects : MonoBehaviour
                 info.isReplaced = true;
 
                 // Зареєструвати замінник у списку, щоб і його ховати за межами дистанції
-                _placed.Add((repl, gpsCoord));
+                // repl не додається в список, щоб для нього не показувати маркер
             }
 
             // 3) Додати початковий об’єкт до списку
@@ -140,6 +140,21 @@ public class PreplaceWorldObjects : MonoBehaviour
     public void AddPlacedObject(GameObject go, LatLong coord)
     {
         _placed.Add((go, coord));
+    }
+
+    /// <summary>
+    /// Повертає список координат тільки тих об’єктів, які ще не замінені
+    /// </summary>
+    public List<LatLong> GetActiveLatLongs()
+    {
+        // Повертаємо лише координати невідкритих об’єктів
+        return _placed
+            .Where(tuple => {
+                var info = tuple.go.GetComponent<ObjectInfo>();
+                return info != null && !info.isReplaced;
+            })
+            .Select(tuple => tuple.coord)
+            .ToList();
     }
 
     // Геттери

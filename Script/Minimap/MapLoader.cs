@@ -145,7 +145,7 @@ public class StaticMapLoader : MonoBehaviour
         miniMapImage.texture = croppedTexture;
         Debug.Log("✅ Мінікарта оновлена з центром точно по GPS.");
 
-        var gpsPoints = _preplaceWorldObjects.GetLatLongs();
+        var gpsPoints = _preplaceWorldObjects.GetActiveLatLongs();
         _miniMapMarkerPlacer.SetPlayerCoordinates(lat, lon);
         _miniMapMarkerPlacer.UpdateAllMarkers(gpsPoints);
     }
