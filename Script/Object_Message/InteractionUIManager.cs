@@ -59,25 +59,35 @@ public class InteractionUIManager : MonoBehaviour
     {
         if (!_positioningManager.IsAvailable) return;
 
-        // 2) Для кожного PlacedObject оновлюємо видимість/позицію кнопки
         foreach (var entry in _preplacer.PlacedObjects)
         {
             var go = entry.go;
-            if (go == null || !_buttons.ContainsKey(go))
-                continue;
+            if (go == null || !_buttons.ContainsKey(go)) continue;
 
             var info = go.GetComponent<ObjectInfo>();
-            bool shouldShow = go.activeSelf
-                              && info != null
-                              && !info.isReplaced
-                              && Vector3.Distance(_mainCam.transform.position, go.transform.position) <= _showDistance;
+            if (info == null || info.isReplaced)
+            {
+                _buttons[go].gameObject.SetActive(false);
+                continue;
+            }
 
+            // 1) Перевіряємо відстань
+            float dist = Vector3.Distance(_mainCam.transform.position, go.transform.position);
+            if (dist > _showDistance)
+            {
+                _buttons[go].gameObject.SetActive(false);
+                continue;
+            }
+
+            // 2) Проекція в екранні координати
+            Vector3 screenPos = _mainCam.WorldToScreenPoint(go.transform.position);
+            bool inFront = screenPos.z > 0f;
+
+            // 3) Показуємо/ховаємо кнопку
             var btn = _buttons[go];
-            if (shouldShow)
+            if (inFront)
             {
                 btn.gameObject.SetActive(true);
-                // конвертуємо позицію світу → екран
-                Vector3 screenPos = _mainCam.WorldToScreenPoint(go.transform.position);
                 btn.transform.position = screenPos + Vector3.up * 50f;
             }
             else
@@ -87,6 +97,7 @@ public class InteractionUIManager : MonoBehaviour
         }
     }
 
+
     // Викликається по натисненню кнопки конкретного об'єкта
     private void OnInteractButton(GameObject go)
     {
@@ -94,6 +105,14 @@ public class InteractionUIManager : MonoBehaviour
         var info = go.GetComponent<ObjectInfo>();
         if (info == null) return;
 
+        // 1) Ховаємо кнопку цього об’єкта, щоб не заважала
+        if (_buttons.TryGetValue(go, out var btn))
+            btn.gameObject.SetActive(false);
+
+        // 2) Піднімаємо InfoPanel в ієрархії, щоб кнопки не перекривали його
+        _infoPanel.SetAsLastSibling();
+
+        // 3) Відкриваємо панель з текстом
         _infoText.text = info.description;
         _infoPanel.gameObject.SetActive(true);
     }

@@ -27,6 +27,8 @@ public class SummaryUIManager : MonoBehaviour
 
     private void OpenSummary()
     {
+        _summaryPanel.transform.SetAsLastSibling();
+
         string allText = PlayerPrefs.GetString(SummaryKey, "");
         if (string.IsNullOrEmpty(allText))
         {
